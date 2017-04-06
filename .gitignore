@@ -1,4 +1,10 @@
+# Python
 *.log
 *.pot
 *.pyc
 __pycache__/
+staticfiles
+
+# Virtual env
+venv
+.env
