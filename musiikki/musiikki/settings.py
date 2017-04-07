@@ -25,7 +25,7 @@ SECRET_KEY = '7j-%=o1t)vf3-n7ehwz+%jxhxs9_0g7yd^llu3(ljn%*2e3apw'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'musiikki.herokuapp.com']
 
 
 # Application definition
