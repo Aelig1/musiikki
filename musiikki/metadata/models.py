@@ -16,7 +16,7 @@ class Album(models.Model):
         ordering = ['year', 'name']
 
 class Track(models.Model):
-    name = models.CharField(max_lenght=255)
+    name = models.CharField(max_length=255)
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='tracklist')
     duration = models.DurationField()
     
