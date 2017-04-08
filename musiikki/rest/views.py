@@ -28,11 +28,17 @@ def artist(request, id):
 		
 		return HttpResponse(json_data, content_type='application/json')
 	
+	elif request.method == 'POST':
+		# Conflict, artist already exists
+		return HttpResponse(status=409)
+		
 	elif request.method == 'PUT':
 		pass
 	
 	elif request.method == 'DELETE':
-		pass
+		# Delete artist
+		artist.delete()
+		return HttpResponse()
 	
 	return HttpResponse(id, content_type='application/json')
 

@@ -12,11 +12,12 @@
 			text-align: right;
 		}
 	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
 	<div>
 		<table>
-			<form action="modify" method="post">{% csrf_token %}
+			<form id="rest-form">
 			<tr>
 				<th>Artist</th>
 			</tr>
@@ -71,9 +72,51 @@
 				<td><label for="remove">Remove</label></td>
 			</tr>
 			<tr>
+				<td><input type="radio" name="action" id="search" value="search"></td>
+				<td><label for="search">Search</label></td>
+			</tr>
+			<tr>
 				<td><input type="submit"></td>
 			</tr>
 		</form>
 	</div>
+	{% csrf_token %}
+	<script>
+		// Setup cross-site request forgery protection
+		function csrfSafeMethod(method) {
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		};
+		
+		var csrftoken = $('[name=csrfmiddlewaretoken]').val();
+		$.ajaxSetup({
+			beforeSend: function(xhr, settings) {
+				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+					xhr.setRequestHeader('X-CSRFToken', csrftoken);
+				}
+			}
+		});
+		
+		$('#rest-form').submit(function(event) {
+			event.preventDefault();
+			// Extract form data
+			var form_data = $('#rest-form').serializeArray().reduce(function(object, item){
+				object[item.name] = item.value;
+				return object;
+			}, {});
+			
+			/*
+			// PATCH
+			$.ajax({url: 'artist/1',
+				type: 'PATCH',
+				contentType: 'application/json',
+				data: '{"csrfmiddlewaretoken": "'+ csrftoken + '", "name": "Jorma"}',
+				success: function(result) { alert('success'); }
+			});
+			*/
+			$.ajax('artist/' + form_data['artist_id'], {
+				type: 'DELETE'
+			});
+		});
+	</script>
 </body>
 </html>
