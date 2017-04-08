@@ -3,8 +3,6 @@ from django.http import HttpResponse, Http404
 from django.core import serializers
 import json
 
-import datetime
-
 from metadata.models import Artist, Album, Track
 
 def ui(request):
