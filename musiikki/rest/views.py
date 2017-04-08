@@ -41,14 +41,14 @@ def listArtists(request):
 	for artist in Artist.objects.all():
 		artists.append(artist.dict())
 	
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify aritsts inside callback function call
-			json_data = callback + '(' + json.dumps(artists) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(artists, indent=2)
+	# Check callback
+	callback = request.GET.get('callback')
+	if (callback != None):
+		# Stringify aritsts inside callback function call
+		json_data = callback + '(' + json.dumps(artists) + ');'
+	else:
+		# No callback, stringify with indentation
+		json_data = json.dumps(artists, indent=2)
 		
 	return HttpResponse(json_data, content_type='application/json')
 
