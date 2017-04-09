@@ -16,6 +16,10 @@
 </head>
 <body>
 	<div style="display: inline-block">
+		<button type="button" id="artists-button">Artists</button>
+		<button type="button" id="albums-button">Albums</button>
+		<button type="button" id="tracks-button">Tracks</button>
+		<br><br>
 		<form id="rest-form">
 			<select name="type" id="type">
 				<option value="artist">Artist</option>
@@ -71,6 +75,7 @@
 			</table>
 		</form>
 	</div>
+	<div id="response-container" style="width: 100%; height: 100%; overflow: auto;"></div>
 	{% csrf_token %}
 	<script>
 		// Setup cross-site request forgery protection
@@ -87,32 +92,76 @@
 			}
 		});
 		
+		// Ajax response
+		function responseHandler(jqXHR, textStatus)
+		{
+			// Display response
+			var html = '<p><h3>' + jqXHR.status + ' ' + jqXHR.statusText + '</h3></p>';
+			if (jqXHR.responseJSON)
+			{
+				html += '<pre>' + JSON.stringify(jqXHR.responseJSON, null, 4) + '</pre>';
+			}
+			$('#response-container').html(html);
+		}
+		
+		// Form submit
 		$('#rest-form').submit(function(event) {
 			event.preventDefault();
-			// Extract form data
+			// Extract form data excluding type and method
 			var form_data = $('#rest-form').serializeArray().reduce(function(object, item){
-				object[item.name] = item.value;
+				if (item.name != 'type' && item.name != 'method')
+				{
+					object[item.name] = item.value;
+				}
 				return object;
 			}, {});
 			
-			/*
-			// PATCH
-			$.ajax({url: 'artist/1',
-				type: 'PATCH',
-				contentType: 'application/json',
-				data: '{"csrfmiddlewaretoken": "'+ csrftoken + '", "name": "Jorma"}',
-				success: function(result) { alert('success'); }
-			});
+			var type = $('#type').val();
+			var method = $('#method').val();
 			
-			$.ajax('artist/' + form_data['artist_id'], {
-				type: 'DELETE'
-			});
-			*/
-			$.ajax('artists', {
-				type: 'POST',
-				data: form_data
-			});
+			var url = type + '/' + form_data[type + '_id'];
+			var data = {};
+			switch (method)
+			{
+				case 'post':
+					url = type + 's'
+					data = form_data;
+					break;
+				case 'put':
+					data = form_data;
+					break;
+				case 'patch':
+					data = form_data;
+					break;
+				case 'search':
+					method = 'get';
+					url = 'search';
+					data = form_data;
+					break;
+			}
+			// Send request
+			$.ajax(url,
+				{
+					method: method,
+					data: data,
+					complete: responseHandler
+				}
+			);
 		});
+		
+		// Buttons
+		function buttonHandler(button) {
+			// Send request
+			$.ajax(button,
+				{
+					method: 'get',
+					complete: responseHandler
+				}
+			);
+		}
+		$('#artists-button').click(buttonHandler('artists'));
+		$('#albums-button').click(buttonHandler('albums'));
+		$('#tracks-button').click(buttonHandler('tracks'));
 		
 		// Get all dropdown options
 		var type_options = [];
