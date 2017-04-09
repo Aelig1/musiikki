@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>musiikki REST API</title>
-	<style type="text/css">
+	<style type="text/css">		
 		tr { 
 			text-align: left;
 		}
@@ -15,69 +15,57 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
-	<div>
-		<table>
-			<form id="rest-form">
-			<tr>
-				<th>Artist</th>
-			</tr>
-			<tr>
+	<div style="display: inline-block">
+		<form id="rest-form">
+		<select name="type" id="type">
+			<option value="artist">Artist</option>
+			<option value="album">Album</option>
+			<option value="track">Track</option>
+		</select>
+		<select name="method" id="method">
+			<option value="get">GET</option>
+			<option value="post">POST</option>
+			<option value="put">PUT</option>
+			<option value="patch">PATCH</option>
+			<option value="delete">DELETE</option>
+			<option value="search">Search</option>
+		</select>
+		<input type="submit">
+		<table id="rest-form-table">
+			<tr class="artist-get artist-put artist-patch artist-delete album-post" style="display: none">
 				<td><label for="artist_id">Artist ID</label></td>
 				<td><input type="text" id="artist_id" name="artist_id"></td>
 			</tr>
-			<tr>
+			<tr class="artist-post artist-put artist-patch" style="display: none">
 				<td><label for="artist">Artist name</label></td>
 				<td><input type="text" id="artist" name="artist"></td>
 			</tr>
-			<tr>
+			<tr class="artist-post artist-put artist-patch" style="display: none">
 				<td><label for="genre">Genre</label></td>
 				<td><input type="text" id="genre" name="genre"></td>
 			</tr>
-			<tr>
-				<th>Album</th>
-			</tr>
-			<tr>
+			<tr class="album-get album-put album-patch album-delete track-post" style="display: none">
 				<td><label for="album_id">Album ID</label></td>
 				<td><input type="text" id="album_id" name="album_id"></td>
 			</tr>
-			<tr>
+			<tr class="album-post album-put album-patch" style="display: none">
 				<td><label for="album">Album title</label></td>
 				<td><input type="text" id="album" name="album"></td>
 			</tr>
-			<tr>
+			<tr class="album-post album-put album-patch" style="display: none">
 				<td><label for="year">Year</label></td>
 				<td><input type="number" id="year" name="year"></td>
 			</tr>
-			<tr>
-				<th>Track</th>
-			</tr>
-			<tr>
+			<tr class="track-get track-put track-patch track-delete" style="display: none">
 				<td><label for="track_id">Track ID</label></td>
 				<td><input type="text" id="track_id" name="track_id"></td>
 			</tr>
-			<tr>
+			<tr class="track-post track-put track-patch" style="display: none">
 				<td><label for="track">Track title</label></td>
 				<td><input type="text" id="track" name="track"></td>
 			</tr>
-			<tr>
-				<td><input type="radio" name="action" id="add" value="add" checked></td>
-				<td><label for="add">Add</label></td>
-			</tr>
-			<tr>
-				<td><input type="radio" name="action" id="modify" value="modify"></td>
-				<td><label for="modify">Modify</label></td>
-			</tr>
-			<tr>
-				<td><input type="radio" name="action" id="remove" value="remove"></td>
-				<td><label for="remove">Remove</label></td>
-			</tr>
-			<tr>
-				<td><input type="radio" name="action" id="search" value="search"></td>
-				<td><label for="search">Search</label></td>
-			</tr>
-			<tr>
-				<td><input type="submit"></td>
-			</tr>
+			<!-- TODO: add duration field -->
+		</table>
 		</form>
 	</div>
 	{% csrf_token %}
@@ -112,11 +100,55 @@
 				data: '{"csrfmiddlewaretoken": "'+ csrftoken + '", "name": "Jorma"}',
 				success: function(result) { alert('success'); }
 			});
-			*/
+			
 			$.ajax('artist/' + form_data['artist_id'], {
 				type: 'DELETE'
 			});
+			*/
+			$.ajax('artists', {
+				type: 'POST',
+				data: form_data
+			});
 		});
+		
+		// Get all dropdown options
+		var type_options = [];
+		var method_options = [];
+		$('#type option').each(function() {
+			type_options.push($(this).val());
+		});
+		$('#method option').each(function() {
+			method_options.push($(this).val());
+		});
+
+		function updateInputFields() {
+			var type = $('#type').val();
+			var method = $('#method').val();
+			// If search, show all
+			var search = method == 'search';
+			
+			var show = type + '-' + method;
+			// Show only wanted input fields
+			$('#rest-form-table tr').each(function() {
+				var element = $(this);
+				var input = element.find('input');
+				
+				if (search || element.hasClass(show))
+				{
+					element.show();
+					input.prop('disabled', false);
+				}
+				else
+				{
+					element.hide();
+					input.prop('disabled', true);
+				}
+			});
+		};
+		updateInputFields();
+		
+		$('#type').change(updateInputFields);
+		$('#method').change(updateInputFields);
 	</script>
 </body>
 </html>
