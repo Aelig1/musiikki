@@ -33,30 +33,43 @@ def artist(request, id):
 		return HttpResponse(status=409)
 		
 	elif request.method == 'PUT':
-		pass
+		# TODO
+		return HttpResponse()
+	
+	elif request.method == 'PATCH':
+		# TODO
+		return HttpResponse()
 	
 	elif request.method == 'DELETE':
 		# Delete artist
 		artist.delete()
 		return HttpResponse()
 	
-	return HttpResponse(id, content_type='application/json')
+	return HttpResponse(status=405)
 
-def listArtists(request):
-	artists = []
-	for artist in Artist.objects.all():
-		artists.append(artist.dict())
-	
-	# Check callback
-	callback = request.GET.get('callback')
-	if (callback != None):
-		# Stringify aritsts inside callback function call
-		json_data = callback + '(' + json.dumps(artists) + ');'
-	else:
-		# No callback, stringify with indentation
-		json_data = json.dumps(artists, indent=2)
+def artists(request):
+	# Examine request
+	if request.method == 'GET':
+		artists = []
+		for artist in Artist.objects.all():
+			artists.append(artist.dict())
 		
-	return HttpResponse(json_data, content_type='application/json')
+		# Check callback
+		callback = request.GET.get('callback')
+		if (callback != None):
+			# Stringify aritsts inside callback function call
+			json_data = callback + '(' + json.dumps(artists) + ');'
+		else:
+			# No callback, stringify with indentation
+			json_data = json.dumps(artists, indent=2)
+			
+		return HttpResponse(json_data, content_type='application/json')
+	
+	elif request.method == 'POST':
+		print(request.POST.get('artist_id'))
+		return HttpResponse(status=201)
+	
+	return HttpResponse(status=405)
 
 def album(request, id):
 	# Find album
