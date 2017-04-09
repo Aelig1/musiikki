@@ -150,18 +150,18 @@
 		});
 		
 		// Buttons
-		function buttonHandler(button) {
+		function buttonHandler(event) {
 			// Send request
-			$.ajax(button,
+			$.ajax(event.data,
 				{
 					method: 'get',
 					complete: responseHandler
 				}
 			);
 		}
-		$('#artists-button').click(buttonHandler('artists'));
-		$('#albums-button').click(buttonHandler('albums'));
-		$('#tracks-button').click(buttonHandler('tracks'));
+		$('#artists-button').click('artists', buttonHandler);
+		$('#albums-button').click('albums', buttonHandler);
+		$('#tracks-button').click('tracks', buttonHandler);
 		
 		// Get all dropdown options
 		var type_options = [];
