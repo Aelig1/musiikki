@@ -150,7 +150,57 @@ def album(request, id):
 		
 		return HttpResponse(json_data, content_type='application/json')
 	
-	return HttpResponse(id, content_type='application/json')
+	elif request.method == 'HEAD':
+		return HttpResponse()
+	
+	elif request.method == 'POST':
+		# Conflict, album already exists
+		return HttpResponse(status=409)
+		
+	elif request.method == 'PUT':
+		put = QueryDict(request.body)
+		# TODO: Replace ad hoc implementation
+		name = put.get('album')
+		#artist_id = put.get('artist_id')
+		if not name:
+			return HttpResponse(status=400)
+		
+		year = put.get('year')
+		if not year:
+			year = None
+		
+		# Assign values
+		album.name = name
+		album.year = year
+		album.save()
+		
+		return HttpResponse()
+	
+	elif request.method == 'PATCH':
+		patch = QueryDict(request.body)
+		modified = False
+		# TODO: Dynamic implementation
+		name = patch.get('album')
+		if name:
+			album.name = name
+			modified = True
+		
+		year = patch.get('year')
+		if year:
+			album.year = year
+			modified = True
+		
+		if modified:
+			album.save()
+		
+		return HttpResponse()
+	
+	elif request.method == 'DELETE':
+		# Delete album
+		album.delete()
+		return HttpResponse()
+	
+	return HttpResponse(status=405)
 
 def albums(request):
 	# Examine request
@@ -192,8 +242,17 @@ def albums(request):
 		except Artist.DoesNotExist:
 			raise Http404('Artist with ID ' + artist_id + ' does not exist.')
 		
-		Album.objects.create(name=album, artist=artist, year=year)
-		return HttpResponse(status=201)
+		album = Album.objects.create(name=album, artist=artist, year=year)
+		if not album:
+			# Album was not created
+			return HttpResponse(status=507)
+		
+		response = HttpResponse(status=201)
+		response['location'] = album.id
+		return response
+	
+	elif request.method == 'PUT' or request.method == 'PATCH' or request.method == 'DELETE':
+		return HttpResponse(status=404)
 	
 	return HttpResponse(status=405)
 
@@ -217,8 +276,67 @@ def track(request, id):
 		
 		return HttpResponse(json_data, content_type='application/json')
 	
+	elif request.method == 'HEAD':
+		return HttpResponse()
 	
-	return HttpResponse(id, content_type='application/json')
+	elif request.method == 'POST':
+		# Conflict, track already exists
+		return HttpResponse(status=409)
+		
+	elif request.method == 'PUT':
+		put = QueryDict(request.body)
+		# TODO: Replace ad hoc implementation
+		name = put.get('track')
+		#album_id = put.get('album_id')
+		if not name:
+			return HttpResponse(status=400)
+		
+		duration = put.get('duration')
+		if not duration:
+			duration = None
+		else:
+			try:
+				duration = timedelta(seconds=int(duration))
+			except ValueError:
+				# Unable to convert duration to int
+				return HttpResponse(status=400)
+		
+		# Assign values
+		track.name = name
+		track.duration = duration
+		track.save()
+		
+		return HttpResponse()
+	
+	elif request.method == 'PATCH':
+		patch = QueryDict(request.body)
+		modified = False
+		# TODO: Dynamic implementation
+		name = patch.get('track')
+		if name:
+			track.name = name
+			modified = True
+		
+		duration = patch.get('duration')
+		if duration:
+			try:
+				track.duration = timedelta(seconds=int(duration))
+				modified = True
+			except ValueError:
+				# Unable to convert duration to int
+				return HttpResponse(status=400)
+		
+		if modified:
+			track.save()
+		
+		return HttpResponse()
+	
+	elif request.method == 'DELETE':
+		# Delete track
+		track.delete()
+		return HttpResponse()
+	
+	return HttpResponse(status=405)
 
 def tracks(request):
 	# Examine request
@@ -251,11 +369,14 @@ def tracks(request):
 		if not album_id or not track:
 			# Album_id and track name required
 			return HttpResponse(status=400)
-		# Reormat duration
+		# Reformat duration
 		if not duration:
 			duration = None
 		else:
-			duration = timedelta(seconds=int(duration))
+			try:
+				duration = timedelta(seconds=int(duration))
+			except ValueError:
+				return HttpResponse(status=400)
 		
 		# Find album
 		try:
@@ -263,11 +384,21 @@ def tracks(request):
 		except Album.DoesNotExist:
 			raise Http404('Album with ID ' + album_id + ' does not exist.')
 		
-		Track.objects.create(name=track, album=album, duration=duration)
-		return HttpResponse(status=201)
+		track = Track.objects.create(name=track, album=album, duration=duration)
+		if not track:
+			# Track was not created
+			return HttpResponse(status=507)
+		
+		response = HttpResponse(status=201)
+		response['location'] = track.id
+		return response
+	
+	elif request.method == 'PUT' or request.method == 'PATCH' or request.method == 'DELETE':
+		return HttpResponse(status=404)
 	
 	return HttpResponse(status=405)
 	
 def search(request):
+	# TODO: implement
 	# 501 Not Implemented
 	return HttpResponse(status=501)
