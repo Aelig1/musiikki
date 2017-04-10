@@ -92,16 +92,23 @@
 			}
 		});
 		
-		// Ajax response
-		function responseHandler(jqXHR, textStatus)
+		// Send ajax request
+		function sendRequest(request)
 		{
-			// Display response
-			var html = '<p><h3>' + jqXHR.status + ' ' + jqXHR.statusText + '</h3></p>';
-			if (jqXHR.responseJSON)
-			{
-				html += '<pre>' + JSON.stringify(jqXHR.responseJSON, null, 4) + '</pre>';
-			}
-			$('#response-container').html(html);
+			// Set waiting text
+			$('#response-container').html('<p>Waiting for response</p>');
+			// Set complete callback function
+			request['complete'] = function(jqXHR, textStatus) {
+				// Display response
+				var html = '<p><h3>' + jqXHR.status + ' ' + jqXHR.statusText + '</h3></p>';
+				if (jqXHR.responseJSON)
+				{
+					html += '<pre>' + JSON.stringify(jqXHR.responseJSON, null, 4) + '</pre>';
+				}
+				$('#response-container').html(html);
+			};
+			// Send request
+			$.ajax(request);
 		}
 		
 		// Form submit
@@ -139,25 +146,15 @@
 					data = form_data;
 					break;
 			}
-			// Send request
-			$.ajax(url,
-				{
-					method: method,
-					data: data,
-					complete: responseHandler
-				}
-			);
+			
+			// Ajax request
+			sendRequest({ url: url, method: method, data: data });
 		});
 		
 		// Buttons
 		function buttonHandler(event) {
-			// Send request
-			$.ajax(event.data,
-				{
-					method: 'get',
-					complete: responseHandler
-				}
-			);
+			// Ajax request
+			sendRequest({ url: event.data, method: 'get' });
 		}
 		$('#artists-button').click('artists', buttonHandler);
 		$('#albums-button').click('albums', buttonHandler);
