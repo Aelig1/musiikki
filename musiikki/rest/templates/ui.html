@@ -221,8 +221,8 @@
 			var win_height = $(window).height();
 			var container = $('#response-container');
 			var inner_height = container[0].scrollHeight
-			var new_height  = inner_height + Math.min( win_height - container.position().top - inner_height, 0 );
-			container.height(new_height - 10);
+			var new_height  = inner_height + Math.min( win_height - container.position().top - inner_height - 10, 0 );
+			container.height(new_height);
 		}
 		$(window).resize(resizeResponseContainer);
 	</script>
