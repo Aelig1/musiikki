@@ -190,9 +190,15 @@
 			var method = $('#method').val();
 			
 			var show = method;
-			if (method != 'search')
+			if (method == 'search')
+			{
+				// Disable type input
+				$('#type').prop('disabled', true);
+			}
+			else
 			{
 				show = type + '-' + show;
+				$('#type').prop('disabled', false);
 			}
 			
 			// Show only wanted input fields
