@@ -7,6 +7,8 @@ urlpatterns = [
 	url(r'^artist/(\d+)$', views.artist),
 	url(r'^artists$', views.artists),
 	url(r'^album/(\d+)$', views.album),
+	url(r'^albums$', views.albums),
 	url(r'^track/(\d+)$', views.track),
+	url(r'^tracks$', views.tracks),
 	url(r'^search$', views.search)
 ]

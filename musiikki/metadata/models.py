@@ -30,7 +30,7 @@ class Artist(models.Model):
 class Album(models.Model):
 	name = models.CharField(max_length=255)
 	artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
-	year = models.IntegerField()
+	year = models.IntegerField(null=True, blank=True)
    
 	class Meta:
 		ordering = ['year', 'name']
@@ -62,7 +62,7 @@ class Album(models.Model):
 class Track(models.Model):
 	name = models.CharField(max_length=255)
 	album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='tracklist')
-	duration = models.DurationField()
+	duration = models.DurationField(null=True, blank=True)
 	    
 	class Meta:
 		ordering = ['name']
