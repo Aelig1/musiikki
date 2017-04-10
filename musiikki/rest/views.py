@@ -1,6 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, Http404
-from django.core import serializers
+from django.http import HttpResponse, Http404, QueryDict
 
 from datetime import timedelta
 import json
@@ -30,12 +29,31 @@ def artist(request, id):
 		
 		return HttpResponse(json_data, content_type='application/json')
 	
+	elif request.method == 'HEAD':
+		return HttpResponse()
+	
 	elif request.method == 'POST':
 		# Conflict, artist already exists
 		return HttpResponse(status=409)
 		
 	elif request.method == 'PUT':
-		# TODO
+		put = QueryDict(request.body)
+		# TODO: Replace ad hoc parameter extraction with automatic and dynamic
+		# where not-null fields in model are required
+		name = put.get('artist')
+		if not name:
+			return HttpResponse(status=400)
+		
+		genre = put.get('genre')
+		if not genre:
+			# Make null if empty string
+			genre = None
+		
+		# Assign values
+		artist.name = name
+		artist.genre = genre
+		artist.save()
+		
 		return HttpResponse()
 	
 	elif request.method == 'PATCH':
@@ -68,6 +86,9 @@ def artists(request):
 			
 		return HttpResponse(json_data, content_type='application/json')
 	
+	elif request.method == 'HEAD':
+		return HttpResponse()
+	
 	elif request.method == 'POST':
 		# Create new artist
 		artist = request.POST.get('artist')
@@ -80,8 +101,17 @@ def artists(request):
 			# Reformat empty genre
 			genre = None
 		
-		Artist.objects.create(name=artist, genre=genre)
-		return HttpResponse(status=201)
+		artist = Artist.objects.create(name=artist, genre=genre)
+		if not artist:
+			# Artist was not created
+			return HttpResponse(status=507)
+		
+		response = HttpResponse(status=201)
+		response['location'] = artist.id
+		return response
+	
+	elif request.method == 'PUT' or request.method == 'PATCH' or request.method == 'DELETE':
+		return HttpResponse(status=404)
 	
 	return HttpResponse(status=405)
 
@@ -105,12 +135,6 @@ def album(request, id):
 		
 		return HttpResponse(json_data, content_type='application/json')
 	
-	elif request.method == 'PUT':
-		pass
-	
-	elif request.method == 'DELETE':
-		pass
-	
 	return HttpResponse(id, content_type='application/json')
 
 def albums(request):
@@ -131,6 +155,9 @@ def albums(request):
 			json_data = json.dumps(albums, indent=2)
 			
 		return HttpResponse(json_data, content_type='application/json')
+	
+	elif request.method == 'HEAD':
+		return HttpResponse()
 	
 	elif request.method == 'POST':
 		# Create new album
@@ -175,11 +202,6 @@ def track(request, id):
 		
 		return HttpResponse(json_data, content_type='application/json')
 	
-	elif request.method == 'PUT':
-		pass
-	
-	elif request.method == 'DELETE':
-		pass
 	
 	return HttpResponse(id, content_type='application/json')
 
@@ -201,6 +223,9 @@ def tracks(request):
 			json_data = json.dumps(tracks, indent=2)
 			
 		return HttpResponse(json_data, content_type='application/json')
+	
+	elif request.method == 'HEAD':
+		return HttpResponse()
 	
 	elif request.method == 'POST':
 		# Create new track
