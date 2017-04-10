@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>musiikki REST API</title>
-	<style type="text/css">		
+	<style type="text/css">
 		tr { 
 			text-align: left;
 		}
@@ -11,11 +11,21 @@
 		td:first-child{
 			text-align: right;
 		}
+		
+		#request-container {
+			display: inline-block;
+		}
+		
+		#response-container {
+			width: 100%;
+			min-height: 100px;
+			overflow: auto;
+		}
 	</style>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
-	<div style="display: inline-block">
+	<div id="request-container">
 		<button type="button" id="artists-button">Artists</button>
 		<button type="button" id="albums-button">Albums</button>
 		<button type="button" id="tracks-button">Tracks</button>
@@ -36,6 +46,7 @@
 			</select>
 			<input type="submit">
 			<table id="rest-form-table">
+				<!--TODO: Universal ID field for artist, album and track-->
 				<tr class="artist-get artist-put artist-patch artist-delete album-post" style="display: none">
 					<td><label for="artist_id">Artist ID</label></td>
 					<td><input type="text" id="artist_id" name="artist_id"></td>
@@ -75,7 +86,7 @@
 			</table>
 		</form>
 	</div>
-	<div id="response-container" style="width: 100%; height: 100%; overflow: auto;"></div>
+	<div id="response-container"></div>
 	{% csrf_token %}
 	<script>
 		// Setup cross-site request forgery protection
@@ -106,6 +117,9 @@
 					html += '<pre>' + JSON.stringify(jqXHR.responseJSON, null, 4) + '</pre>';
 				}
 				$('#response-container').html(html);
+				
+				// Update request-container size
+				resizeResponseContainer();
 			};
 			// Send request
 			$.ajax(request);
@@ -194,11 +208,23 @@
 					input.prop('disabled', true);
 				}
 			});
+			
+			
+			resizeResponseContainer();
 		};
 		updateInputFields();
 		
 		$('#type').change(updateInputFields);
 		$('#method').change(updateInputFields);
+		
+		function resizeResponseContainer() {
+			var win_height = $(window).height();
+			var container = $('#response-container');
+			var inner_height = container[0].scrollHeight
+			var new_height  = inner_height + Math.min( win_height - container.position().top - inner_height, 0 );
+			container.height(new_height - 10);
+		}
+		$(window).resize(resizeResponseContainer);
 	</script>
 </body>
 </html>
