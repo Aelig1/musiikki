@@ -153,7 +153,14 @@
 					data = form_data;
 					break;
 				case 'patch':
-					data = form_data;
+					for (item in form_data)
+					{
+						// Exclude empty values and type_ids
+						if (form_data[item] && item != type + '_id')
+						{
+							data[item] = form_data[item];
+						}
+					}
 					break;
 				case 'search':
 					method = 'get';

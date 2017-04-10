@@ -53,15 +53,21 @@ def artist(request, id):
 		patch = QueryDict(request.body)
 		modified = False
 		# TODO: Dynamic implementation
-		name = patch.get('artist')
-		if name:
-			artist.name = name
+		if 'artist' in patch.keys():
+			artist.name = patch.get('artist')
 			modified = True
 		
-		genre = patch.get('genre')
-		if genre:
-			artist.genre = genre
+			if not artist.name:
+				# Required field is empty, bad request
+				return HttpResponse(status=400)
+			
+		if 'genre' in patch.keys():
+			artist.genre = patch.get('genre')
 			modified = True
+			
+			if not artist.genre:
+				# Optional field is empty, set to None
+				artist.genre = None
 		
 		if modified:
 			artist.save()
@@ -96,7 +102,12 @@ def artists(request):
 			# Reformat empty genre
 			genre = None
 		
-		artist = Artist.objects.create(name=artist, genre=genre)
+		try:
+			artist = Artist.objects.create(name=artist, genre=genre)
+		except ValueError:
+			# Bad values
+			HttpResponse(status=400)
+		
 		if not artist:
 			# Artist was not created
 			return HttpResponse(status=507)
@@ -143,7 +154,10 @@ def album(request, id):
 		# Assign values
 		album.name = name
 		album.year = year
-		album.save()
+		try:
+			album.save()
+		except ValueError:
+			return HttpResponse(status=400)
 		
 		return HttpResponse()
 	
@@ -151,18 +165,19 @@ def album(request, id):
 		patch = QueryDict(request.body)
 		modified = False
 		# TODO: Dynamic implementation
-		name = patch.get('album')
-		if name:
-			album.name = name
+		if 'album' in patch.keys():
+			album.name = patch.get('album')
 			modified = True
 		
-		year = patch.get('year')
-		if year:
-			album.year = year
+		if 'year' in patch.keys():
+			album.year = patch.get('year')
 			modified = True
 		
 		if modified:
-			album.save()
+			try:
+				album.save()
+			except ValueError:
+				return HttpResponse(status=400)
 		
 		return HttpResponse()
 	
@@ -201,7 +216,13 @@ def albums(request):
 		except Artist.DoesNotExist:
 			raise Http404('Artist with ID ' + artist_id + ' does not exist.')
 		
-		album = Album.objects.create(name=album, artist=artist, year=year)
+		try:
+			# Save album
+			album = Album.objects.create(name=album, artist=artist, year=year)
+		except ValueError:
+			# Bad values
+			return HttpResponse(status=400)
+		
 		if not album:
 			# Album was not created
 			return HttpResponse(status=507)
@@ -262,15 +283,13 @@ def track(request, id):
 		patch = QueryDict(request.body)
 		modified = False
 		# TODO: Dynamic implementation
-		name = patch.get('track')
-		if name:
-			track.name = name
+		if 'track' in patch.keys():
+			track.name = patch.get('track')
 			modified = True
 		
-		duration = patch.get('duration')
-		if duration:
+		if 'duration' in patch.keys():
 			try:
-				track.duration = timedelta(seconds=int(duration))
+				track.duration = timedelta(seconds=int(patch.get('duration')))
 				modified = True
 			except ValueError:
 				# Unable to convert duration to int
