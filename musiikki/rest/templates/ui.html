@@ -51,11 +51,11 @@
 					<td><label for="artist_id">Artist ID</label></td>
 					<td><input type="text" id="artist_id" name="artist_id"></td>
 				</tr>
-				<tr class="artist-post artist-put artist-patch" style="display: none">
+				<tr class="artist-post artist-put artist-patch search" style="display: none">
 					<td><label for="artist">Artist name</label></td>
 					<td><input type="text" id="artist" name="artist"></td>
 				</tr>
-				<tr class="artist-post artist-put artist-patch" style="display: none">
+				<tr class="artist-post artist-put artist-patch search" style="display: none">
 					<td><label for="genre">Genre</label></td>
 					<td><input type="text" id="genre" name="genre"></td>
 				</tr>
@@ -63,7 +63,7 @@
 					<td><label for="album_id">Album ID</label></td>
 					<td><input type="text" id="album_id" name="album_id"></td>
 				</tr>
-				<tr class="album-post album-put album-patch" style="display: none">
+				<tr class="album-post album-put album-patch search" style="display: none">
 					<td><label for="album">Album title</label></td>
 					<td><input type="text" id="album" name="album"></td>
 				</tr>
@@ -75,7 +75,7 @@
 					<td><label for="track_id">Track ID</label></td>
 					<td><input type="text" id="track_id" name="track_id"></td>
 				</tr>
-				<tr class="track-post track-put track-patch" style="display: none">
+				<tr class="track-post track-put track-patch search" style="display: none">
 					<td><label for="track">Track title</label></td>
 					<td><input type="text" id="track" name="track"></td>
 				</tr>
@@ -188,16 +188,19 @@
 		function updateInputFields() {
 			var type = $('#type').val();
 			var method = $('#method').val();
-			// If search, show all
-			var search = method == 'search';
 			
-			var show = type + '-' + method;
+			var show = method;
+			if (method != 'search')
+			{
+				show = type + '-' + show;
+			}
+			
 			// Show only wanted input fields
 			$('#rest-form-table tr').each(function() {
 				var element = $(this);
 				var input = element.find('input');
 				
-				if (search || element.hasClass(show))
+				if (element.hasClass(show))
 				{
 					element.show();
 					input.prop('disabled', false);
@@ -208,7 +211,6 @@
 					input.prop('disabled', true);
 				}
 			});
-			
 			
 			resizeResponseContainer();
 		};

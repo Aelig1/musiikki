@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, QueryDict
+from django.db.models.query import QuerySet
 
 from datetime import timedelta
 import json
@@ -18,16 +19,7 @@ def artist(request, id):
 	
 	# Examine request
 	if request.method == 'GET':
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify aritst inside callback function call
-			json_data = callback + '(' + json.dumps(artist.dict()) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(artist.dict(), indent=2)
-		
-		return HttpResponse(json_data, content_type='application/json')
+		return JSONResponse(artist, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -85,21 +77,7 @@ def artist(request, id):
 def artists(request):
 	# Examine request
 	if request.method == 'GET':
-		# Get all artists
-		artists = []
-		for artist in Artist.objects.all():
-			artists.append(artist.dict())
-		
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify aritsts inside callback function call
-			json_data = callback + '(' + json.dumps(artists) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(artists, indent=2)
-			
-		return HttpResponse(json_data, content_type='application/json')
+		return JSONResponse(Artist.objects.all(), request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -139,16 +117,7 @@ def album(request, id):
 	
 	# Examine request
 	if request.method == 'GET':
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify album inside callback function call
-			json_data = callback + '(' + json.dumps(album.dict()) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(album.dict(), indent=2)
-		
-		return HttpResponse(json_data, content_type='application/json')
+		return JSONResponse(album, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -205,21 +174,7 @@ def album(request, id):
 def albums(request):
 	# Examine request
 	if request.method == 'GET':
-		# Get all albums
-		albums = []
-		for album in Album.objects.all():
-			albums.append(album.dict())
-		
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify albums inside callback function call
-			json_data = callback + '(' + json.dumps(albums) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(albums, indent=2)
-			
-		return HttpResponse(json_data, content_type='application/json')
+		return JSONResponse(Album.objects.all(), request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -265,16 +220,7 @@ def track(request, id):
 	
 	# Examine request
 	if request.method == 'GET':
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify track inside callback function call
-			json_data = callback + '(' + json.dumps(track.dict()) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(track.dict(), indent=2)
-		
-		return HttpResponse(json_data, content_type='application/json')
+		return JSONResponse(track, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -341,21 +287,7 @@ def track(request, id):
 def tracks(request):
 	# Examine request
 	if request.method == 'GET':
-		# Get all tracks
-		tracks = []
-		for track in Track.objects.all():
-			tracks.append(track.dict())
-		
-		# Check callback
-		callback = request.GET.get('callback')
-		if (callback != None):
-			# Stringify albums inside callback function call
-			json_data = callback + '(' + json.dumps(tracks) + ');'
-		else:
-			# No callback, stringify with indentation
-			json_data = json.dumps(tracks, indent=2)
-			
-		return HttpResponse(json_data, content_type='application/json')
+		return JSONResponse(Track.objects.all(), request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -399,6 +331,90 @@ def tracks(request):
 	return HttpResponse(status=405)
 	
 def search(request):
-	# TODO: implement
-	# 501 Not Implemented
-	return HttpResponse(status=501)
+	keywords = {}
+	# Filter out empty values
+	for key in request.GET:
+		value = request.GET[key]
+		if value:
+			keywords[key] = value
+	
+	hierarchy_prefix = ''
+	data = []
+	data_filled = False
+	
+	if data_filled:
+		# Append to filter hierarchy prefix
+		hierarchy_prefix += 'track__'
+		
+	if 'track' in keywords:
+		if not data_filled:
+			# Fill data with tracks
+			data = Track.objects.all()
+			data_filled = True
+		# Filter by track title
+		data = data.filter(**{hierarchy_prefix + 'name__icontains': keywords['track']})
+	
+	if data_filled:
+		hierarchy_prefix += 'album__'
+	
+	if 'album' in keywords:
+		if not data_filled:
+			# Fill data with albums
+			data = Album.objects.all()
+			data_filled = True
+		# Filter by album title
+		data = data.filter(**{hierarchy_prefix + 'name__icontains': keywords['album']})
+	
+	if data_filled:
+		hierarchy_prefix += 'artist__'
+	
+	if 'artist' in keywords:
+		if not data_filled:
+			# Fill data with artists
+			data = Artist.objects.all()
+			data_filled = True
+		# Filter by artist name
+		data = data.filter(**{hierarchy_prefix + 'name__icontains': keywords['artist']})
+		
+	if 'genre' in keywords:
+		if not data_filled:
+			# Fill data with artists
+			data = Artist.objects.all()
+			data_filled = True
+		# Filter by genre
+		data = data.filter(**{hierarchy_prefix + 'genre__icontains': keywords['genre']})
+		
+	return JSONResponse(data, request.GET.get('callback'))
+
+# Returns QuerySet in a HttpResponse as JSON data
+# If callback function name is given
+def JSONResponse(query_set, callback=None):
+	try:
+		try:
+			# Get all items
+			data = []
+			for item in query_set:
+				try:
+					data.append(item.dict())
+				except AttributeError:
+					#item has no attribute dict
+					data.append(item)
+		except TypeError:
+			# query_set is not iterable
+			try:
+				data = query_set.dict()
+			except AttributeError:
+				#query_set has no attribute dict
+				data = query_set
+		
+		# Check callback
+		if (callback != None):
+			# Stringify list inside callback function call
+			json_data = callback + '(' + json.dumps(data) + ');'
+		else:
+			# No callback, stringify with indentation
+			json_data = json.dumps(data, indent=2)
+			
+		return HttpResponse(json_data, content_type='application/json')
+	except:
+		return HttpResponse(status=500)
