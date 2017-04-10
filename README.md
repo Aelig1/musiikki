@@ -11,7 +11,7 @@ Includes UI for testing HTTP requests and searching.
 
 ## Installation
 
-The API is deployed in [musiikki.herokuapp.com].
+The API is deployed in [musiikki.herokuapp.com](https://musiikki.herokuapp.com).
 You can test it there
 
 or
