@@ -4,11 +4,13 @@ from . import views
 
 urlpatterns = [
 	url(r'^$', views.ui),
-	url(r'^artist/(\d+)$', views.artist),
-	url(r'^artists$', views.artists),
-	url(r'^album/(\d+)$', views.album),
-	url(r'^albums$', views.albums),
-	url(r'^track/(\d+)$', views.track),
-	url(r'^tracks$', views.tracks),
-	url(r'^search$', views.search)
+	
+	url(r'^artists/$', views.artists), # All artists
+	url(r'^artists/(\d+)/$', views.artist), # Single artist
+	url(r'^albums/$', views.albums), # All albums
+	url(r'^albums/(\d+)/$', views.album), # Single album
+	url(r'^tracks/$', views.tracks), # All tracks
+	url(r'^tracks/(\d+)/$', views.track), # Single track
+	
+	url(r'^search/$', views.search)
 ]

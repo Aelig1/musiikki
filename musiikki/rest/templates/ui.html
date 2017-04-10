@@ -126,12 +126,13 @@
 			var type = $('#type').val();
 			var method = $('#method').val();
 			
-			var url = type + '/' + form_data[type + '_id'];
+			// Ad hoc implementation for url at the moment. Will be replaced
+			var url = type + 's/' + form_data[type + '_id'] + '/';
 			var data = {};
 			switch (method)
 			{
 				case 'post':
-					url = type + 's'
+					url = type + 's/'
 					data = form_data;
 					break;
 				case 'put':
@@ -142,7 +143,7 @@
 					break;
 				case 'search':
 					method = 'get';
-					url = 'search';
+					url = 'search/';
 					data = form_data;
 					break;
 			}
@@ -156,9 +157,9 @@
 			// Ajax request
 			sendRequest({ url: event.data, method: 'get' });
 		}
-		$('#artists-button').click('artists', buttonHandler);
-		$('#albums-button').click('albums', buttonHandler);
-		$('#tracks-button').click('tracks', buttonHandler);
+		$('#artists-button').click('artists/', buttonHandler);
+		$('#albums-button').click('albums/', buttonHandler);
+		$('#tracks-button').click('tracks/', buttonHandler);
 		
 		// Get all dropdown options
 		var type_options = [];
