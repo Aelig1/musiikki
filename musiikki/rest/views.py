@@ -57,7 +57,22 @@ def artist(request, id):
 		return HttpResponse()
 	
 	elif request.method == 'PATCH':
-		# TODO
+		patch = QueryDict(request.body)
+		modified = False
+		# TODO: Dynamic implementation
+		name = patch.get('artist')
+		if name:
+			artist.name = name
+			modified = True
+		
+		genre = patch.get('genre')
+		if genre:
+			artist.genre = genre
+			modified = True
+		
+		if modified:
+			artist.save()
+		
 		return HttpResponse()
 	
 	elif request.method == 'DELETE':
