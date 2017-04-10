@@ -191,8 +191,8 @@ def album(request, id):
 def albums(request):
 	# Examine request
 	if request.method == 'GET':
-		# Order by lower case name
-		albums = Album.objects.all().order_by(Lower('name'))
+		# Order by lower case name and artist
+		albums = Album.objects.all().order_by(Lower('name'), Lower('artist__name'))
 		return JSONResponse(albums, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
@@ -310,8 +310,8 @@ def track(request, id):
 def tracks(request):
 	# Examine request
 	if request.method == 'GET':
-		# Order by lower case name
-		tracks = Track.objects.all().order_by(Lower('name'))
+		# Order by lower case name and artist
+		tracks = Track.objects.all().order_by(Lower('name'), Lower('album__artist__name'))
 		return JSONResponse(tracks, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
@@ -362,7 +362,7 @@ def search(request):
 		value = request.GET[key]
 		if value:
 			keywords[key] = value
-	
+	print(keywords)
 	# Access descendants' attributes in hierarchy by syntax: child__grandchild__attribute
 	hierarchy_prefix = ''
 	# Store the actual search results
