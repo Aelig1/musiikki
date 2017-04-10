@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, QueryDict
 from django.db.models.query import QuerySet
+from django.db.models.functions import Lower
 
 from datetime import timedelta
 import json
@@ -77,7 +78,8 @@ def artist(request, id):
 def artists(request):
 	# Examine request
 	if request.method == 'GET':
-		return JSONResponse(Artist.objects.all(), request.GET.get('callback'))
+		artists = Artist.objects.all().order_by(Lower('name'))
+		return JSONResponse(artists, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -174,7 +176,9 @@ def album(request, id):
 def albums(request):
 	# Examine request
 	if request.method == 'GET':
-		return JSONResponse(Album.objects.all(), request.GET.get('callback'))
+		# Order by lower case name
+		albums = Album.objects.all().order_by(Lower('name'))
+		return JSONResponse(albums, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -287,7 +291,9 @@ def track(request, id):
 def tracks(request):
 	# Examine request
 	if request.method == 'GET':
-		return JSONResponse(Track.objects.all(), request.GET.get('callback'))
+		# Order by lower case name
+		tracks = Track.objects.all().order_by(Lower('name'))
+		return JSONResponse(tracks, request.GET.get('callback'))
 	
 	elif request.method == 'HEAD':
 		return HttpResponse()
@@ -338,8 +344,11 @@ def search(request):
 		if value:
 			keywords[key] = value
 	
+	# Access descendants' attributes in hierarchy by syntax: child__grandchild__attribute
 	hierarchy_prefix = ''
+	# Store the actual search results
 	data = []
+	# Has search results been stored to data variable
 	data_filled = False
 	
 	if data_filled:
@@ -348,10 +357,16 @@ def search(request):
 		
 	if 'track' in keywords:
 		if not data_filled:
-			# Fill data with tracks
+			# If data variable is not filled with any search results, fill it
+			# withdata with all tracks
 			data = Track.objects.all()
+			# Sort data
+			data = data.order_by(Lower('name'), Lower('album__artist__name'),
+				Lower('album__artist__genre'), Lower('album__name'))
 			data_filled = True
 		# Filter by track title
+		# '__icontains' = the attribute contains the value and comparison is
+		# case insensitive
 		data = data.filter(**{hierarchy_prefix + 'name__icontains': keywords['track']})
 	
 	if data_filled:
@@ -361,6 +376,8 @@ def search(request):
 		if not data_filled:
 			# Fill data with albums
 			data = Album.objects.all()
+			# Sort data
+			data = data.order_by(Lower('name'), Lower('artist__name'), Lower('artist__genre'))
 			data_filled = True
 		# Filter by album title
 		data = data.filter(**{hierarchy_prefix + 'name__icontains': keywords['album']})
@@ -372,6 +389,8 @@ def search(request):
 		if not data_filled:
 			# Fill data with artists
 			data = Artist.objects.all()
+			# Sort data
+			data = data.order_by(Lower('name'), Lower('genre'))
 			data_filled = True
 		# Filter by artist name
 		data = data.filter(**{hierarchy_prefix + 'name__icontains': keywords['artist']})
@@ -380,10 +399,12 @@ def search(request):
 		if not data_filled:
 			# Fill data with artists
 			data = Artist.objects.all()
+			# Sort data
+			data = data.order_by(Lower('name'), Lower('genre'))
 			data_filled = True
 		# Filter by genre
 		data = data.filter(**{hierarchy_prefix + 'genre__icontains': keywords['genre']})
-		
+	
 	return JSONResponse(data, request.GET.get('callback'))
 
 # Returns QuerySet in a HttpResponse as JSON data
