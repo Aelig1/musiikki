@@ -362,7 +362,7 @@ def search(request):
 		value = request.GET[key]
 		if value:
 			keywords[key] = value
-	print(keywords)
+	
 	# Access descendants' attributes in hierarchy by syntax: child__grandchild__attribute
 	hierarchy_prefix = ''
 	# Store the actual search results

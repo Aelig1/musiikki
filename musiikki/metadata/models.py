@@ -43,7 +43,7 @@ class Album(models.Model):
 				tracklist = []
 				# Order by track name because track number isn't included in the data yet
 				for track in self.tracklist.all().order_by(models.functions.Lower('name')):
-					tracklist.append( track.dict(['id', 'name']) )
+					tracklist.append( track.dict(['id', 'name', 'duration']) )
 				dict[field] = tracklist
 			# Default
 			else:
